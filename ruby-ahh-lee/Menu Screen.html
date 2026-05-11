@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Menu · For Ruby-Lee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --sky-top: #3a78d6;
+    --sky-mid: #5a93e0;
+    --sky-low: #8fbbec;
+    --cloud-pink: #f7c8d4;
+    --cloud-pink-deep: #e89cb0;
+    --cloud-pink-line: #d57a96;
+    --cloud-white: #ffffff;
+    --cloud-shade: #e7eef7;
+    --cream: #f6e9cf;
+    --cream-deep: #efdcb2;
+    --cream-line: #d9b97a;
+    --pink: #e07a99;
+    --pink-deep: #c95a7d;
+    --pink-soft: #fbd9e3;
+    --ink: #5a3a4a;
+    --sun: #ffe8a8;
+    --sun-core: #fff3c4;
+    --sun-glow: #ffd66a;
+  }
+
+  *, *::before, *::after { box-sizing:border-box; }
+  html, body {
+    margin:0; padding:0;
+    min-height:100%;
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body {
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 85% 12%, rgba(255,240,180,0.45) 0%, rgba(255,240,180,0) 30%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-low) 100%);
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* ============================================================
+     SKY LAYER — sun + drifting pink clouds
+     ============================================================ */
+  .sky {
+    position:fixed; inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:0;
+  }
+
+  /* The sun sits in the top-right corner with a warm soft halo */
+  .sun-wrap {
+    position:absolute;
+    top:-60px; right:-60px;
+    width:340px; height:340px;
+    filter: drop-shadow(0 0 60px rgba(255, 220, 130, 0.55));
+  }
+  .sun-wrap svg { width:100%; height:100%; display:block; }
+
+  /* Each cloud is a cluster of ellipses (kept to simple shapes only).
+     A pink-tinted variant + a white variant. */
+  .cloud {
+    position:absolute;
+    will-change: transform;
+    animation: drift 60s linear infinite;
+  }
+  .cloud svg { display:block; }
+  .cloud.c1 { top:  8%; left:  6%; width:280px; animation-duration:75s; }
+  .cloud.c2 { top: 22%; left: 72%; width:220px; animation-duration:60s; animation-delay:-20s; }
+  .cloud.c3 { top: 58%; left: -4%; width:310px; animation-duration:90s; animation-delay:-40s; }
+  .cloud.c4 { top: 72%; left: 68%; width:260px; animation-duration:80s; animation-delay:-10s; }
+  .cloud.c5 { top: 42%; left: 38%; width:180px; opacity:.7;  animation-duration:65s; animation-delay:-30s; }
+  .cloud.c6 { top: 86%; left: 18%; width:240px; animation-duration:70s; animation-delay:-50s; }
+
+  @keyframes drift {
+    0%   { transform: translateX(0)    translateY(0); }
+    50%  { transform: translateX(40px) translateY(-8px); }
+    100% { transform: translateX(0)    translateY(0); }
+  }
+
+  /* ============================================================
+     STAGE — center the menu vertically
+     ============================================================ */
+  .stage {
+    position:relative; z-index:1;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding: 60px 24px;
+  }
+
+  /* "back to lock" pill, top-left */
+  .back-pill {
+    position:fixed; left:24px; top:24px;
+    background:rgba(255,255,255,0.35);
+    border:1px solid rgba(255,255,255,0.55);
+    color:#fff;
+    border-radius:99px; padding:8px 16px;
+    font-family:'Inter', sans-serif; font-size:11px;
+    letter-spacing:3px; text-transform:uppercase;
+    text-decoration:none;
+    backdrop-filter: blur(6px);
+    z-index:10;
+    transition: background .2s, transform .2s;
+  }
+  .back-pill:hover { background:rgba(255,255,255,0.55); transform: translateY(-1px); }
+
+  /* ============================================================
+     MENU CARD — cream panel with decorative pink frame
+     ============================================================ */
+  .menu-card {
+    position:relative;
+    width:min(640px, 92vw);
+    background:
+      radial-gradient(ellipse at top, #fbf2dd 0%, var(--cream) 60%, var(--cream-deep) 100%);
+    border-radius: 22px;
+    padding: 56px 56px 48px;
+    box-shadow:
+      0 30px 60px -20px rgba(40, 60, 120, 0.45),
+      0 12px 24px -12px rgba(40, 60, 120, 0.3),
+      inset 0 0 0 1px rgba(217, 185, 122, 0.5);
+    isolation:isolate;
+  }
+  /* Decorative pink double-line frame inset */
+  .menu-card::before {
+    content:'';
+    position:absolute; inset:14px;
+    border: 2px solid var(--pink);
+    border-radius: 14px;
+    pointer-events:none;
+  }
+  .menu-card::after {
+    content:'';
+    position:absolute; inset:20px;
+    border: 1px solid var(--pink);
+    border-radius: 10px;
+    opacity:.55;
+    pointer-events:none;
+  }
+
+  /* Corner ornaments — a small diamond cluster in each corner of the frame */
+  .corner {
+    position:absolute;
+    width:34px; height:34px;
+    z-index:2;
+    pointer-events:none;
+  }
+  .corner svg { width:100%; height:100%; display:block; }
+  .corner.tl { top:4px;    left:4px; }
+  .corner.tr { top:4px;    right:4px;  transform: scaleX(-1); }
+  .corner.bl { bottom:4px; left:4px;   transform: scaleY(-1); }
+  .corner.br { bottom:4px; right:4px;  transform: scale(-1,-1); }
+
+  /* Header */
+  .menu-header {
+    text-align:center;
+    margin-bottom: 28px;
+  }
+  .eyebrow {
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'Inter', sans-serif;
+    font-size:10px; letter-spacing:5px; text-transform:uppercase;
+    color: var(--pink-deep);
+    font-weight:500;
+  }
+  .eyebrow .tick {
+    display:inline-block; width:18px; height:1px; background:var(--pink);
+  }
+  .menu-title {
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500; font-style:italic;
+    font-size: clamp(34px, 5vw, 48px);
+    color: var(--pink-deep);
+    margin: 10px 0 2px;
+    line-height:1.05;
+    letter-spacing:.5px;
+  }
+  .menu-sub {
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size: 15px;
+    color: rgba(90, 58, 74, 0.7);
+    margin: 0;
+  }
+
+  /* ============================================================
+     MENU BUTTONS — clean white pills with pink accents
+     ============================================================ */
+  .menu-list {
+    list-style:none; padding:0; margin: 14px 0 0;
+    display:flex; flex-direction:column;
+    gap: 14px;
+  }
+  .menu-list li { display:block; }
+
+  .menu-btn {
+    position:relative;
+    display:flex; align-items:center; gap:18px;
+    width:100%;
+    background:#ffffff;
+    border: 1.5px solid var(--pink);
+    border-radius: 14px;
+    padding: 18px 22px;
+    cursor:pointer;
+    font: inherit; color: var(--ink);
+    text-align:left;
+    box-shadow:
+      0 4px 0 0 var(--pink-soft),
+      0 8px 18px -8px rgba(40,60,120,0.18);
+    transition: transform .2s cubic-bezier(.2,.7,.3,1),
+                box-shadow .2s ease,
+                background .2s ease;
+  }
+  .menu-btn:hover {
+    transform: translateY(-2px);
+    background: #fff;
+    box-shadow:
+      0 6px 0 0 var(--pink),
+      0 12px 22px -10px rgba(40,60,120,0.22);
+  }
+  .menu-btn:active {
+    transform: translateY(1px);
+    box-shadow:
+      0 2px 0 0 var(--pink-soft),
+      0 4px 10px -6px rgba(40,60,120,0.18);
+  }
+
+  .menu-btn .num {
+    flex: none;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--pink-soft);
+    color: var(--pink-deep);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .menu-btn .label {
+    flex: 1 1 auto;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--ink);
+    letter-spacing: .2px;
+  }
+  .menu-btn .arrow {
+    flex: none;
+    color: var(--pink);
+    font-size: 20px;
+    transform: translateX(0);
+    transition: transform .25s cubic-bezier(.2,.7,.3,1);
+  }
+  .menu-btn:hover .arrow { transform: translateX(4px); }
+
+  /* Footer line under the buttons */
+  .menu-foot {
+    margin-top: 28px;
+    text-align:center;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:14px;
+    color: var(--pink-deep);
+    opacity: .8;
+  }
+  .menu-foot .heart {
+    color: var(--pink);
+    margin: 0 4px;
+  }
+
+  /* Entry animation */
+  .menu-card {
+    animation: cardIn .9s cubic-bezier(.2,.7,.3,1) both;
+  }
+  .menu-header { animation: rise .8s cubic-bezier(.2,.7,.3,1) .25s both; }
+  .menu-list li {
+    opacity:0;
+    animation: rise .8s cubic-bezier(.2,.7,.3,1) both;
+  }
+  .menu-list li:nth-child(1) { animation-delay: .40s; }
+  .menu-list li:nth-child(2) { animation-delay: .52s; }
+  .menu-list li:nth-child(3) { animation-delay: .64s; }
+  .menu-list li:nth-child(4) { animation-delay: .76s; }
+  .menu-foot { animation: rise .8s cubic-bezier(.2,.7,.3,1) .9s both; }
+
+  @keyframes cardIn {
+    from { opacity:0; transform: translateY(20px) scale(.97); }
+    to   { opacity:1; transform: translateY(0)   scale(1); }
+  }
+  @keyframes rise {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 540px) {
+    .menu-card { padding: 44px 24px 36px; }
+    .menu-btn { padding: 16px 18px; }
+    .menu-btn .label { font-size: 15px; }
+    .sun-wrap { width:240px; height:240px; top:-40px; right:-40px; }
+  }
+</style>
+</head>
+<body data-screen-label="02 Menu">
+
+<a class="back-pill" href="For Ruby-Lee.html">← back to lock</a>
+
+<!-- ================================================
+     SKY: sun + drifting pink clouds (background)
+     ================================================ -->
+<div class="sky" aria-hidden="true">
+
+  <!-- SUN: warm cream disc with soft rings -->
+  <div class="sun-wrap">
+    <svg viewBox="0 0 340 340">
+      <!-- outer glow rings -->
+      <circle cx="220" cy="120" r="160" fill="#ffe8a8" opacity="0.18"/>
+      <circle cx="220" cy="120" r="130" fill="#ffe8a8" opacity="0.22"/>
+      <circle cx="220" cy="120" r="100" fill="#ffe8a8" opacity="0.35"/>
+      <!-- core -->
+      <circle cx="220" cy="120" r="78"  fill="#ffeec0"/>
+      <circle cx="220" cy="120" r="78"  fill="none" stroke="#f6c97a" stroke-width="2" opacity="0.6"/>
+      <!-- inner highlight -->
+      <circle cx="200" cy="100" r="22"  fill="#fff7d6" opacity="0.9"/>
+    </svg>
+  </div>
+
+  <!-- CLOUDS: clusters of ellipses, cel-shaded with a soft pink under-shadow line -->
+  <!-- Reusable cloud template: 200x100 viewBox -->
+  <div class="cloud c1">
+    <svg viewBox="0 0 220 110">
+      <!-- under shadow -->
+      <ellipse cx="115" cy="90" rx="100" ry="10" fill="rgba(232, 156, 176, 0.35)"/>
+      <!-- pink under-shade band -->
+      <g fill="#f7c8d4">
+        <ellipse cx="50"  cy="70" rx="36" ry="22"/>
+        <ellipse cx="95"  cy="78" rx="42" ry="24"/>
+        <ellipse cx="150" cy="74" rx="40" ry="22"/>
+        <ellipse cx="190" cy="70" rx="26" ry="18"/>
+      </g>
+      <!-- white cloud body, slightly inset upward -->
+      <g fill="#ffffff">
+        <ellipse cx="55"  cy="58" rx="32" ry="26"/>
+        <ellipse cx="95"  cy="48" rx="38" ry="32"/>
+        <ellipse cx="140" cy="54" rx="34" ry="28"/>
+        <ellipse cx="178" cy="60" rx="26" ry="22"/>
+      </g>
+      <!-- inner shade ellipses for cel-look -->
+      <g fill="#f1e1ea" opacity="0.55">
+        <ellipse cx="90"  cy="68" rx="20" ry="6"/>
+        <ellipse cx="145" cy="70" rx="18" ry="5"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="cloud c2">
+    <svg viewBox="0 0 200 100">
+      <ellipse cx="100" cy="84" rx="86" ry="9" fill="rgba(232, 156, 176, 0.3)"/>
+      <g fill="#f7c8d4">
+        <ellipse cx="50"  cy="62" rx="34" ry="22"/>
+        <ellipse cx="100" cy="68" rx="44" ry="24"/>
+        <ellipse cx="155" cy="62" rx="36" ry="22"/>
+      </g>
+      <g fill="#ffffff">
+        <ellipse cx="55"  cy="50" rx="30" ry="24"/>
+        <ellipse cx="100" cy="40" rx="40" ry="32"/>
+        <ellipse cx="150" cy="50" rx="32" ry="26"/>
+      </g>
+      <g fill="#f1e1ea" opacity="0.55">
+        <ellipse cx="95"  cy="60" rx="22" ry="6"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="cloud c3">
+    <svg viewBox="0 0 240 110">
+      <ellipse cx="120" cy="92" rx="110" ry="10" fill="rgba(232, 156, 176, 0.32)"/>
+      <g fill="#f7c8d4">
+        <ellipse cx="40"  cy="72" rx="32" ry="20"/>
+        <ellipse cx="85"  cy="78" rx="42" ry="22"/>
+        <ellipse cx="140" cy="76" rx="44" ry="22"/>
+        <ellipse cx="195" cy="72" rx="38" ry="22"/>
+      </g>
+      <g fill="#ffffff">
+        <ellipse cx="45"  cy="58" rx="28" ry="22"/>
+        <ellipse cx="88"  cy="48" rx="38" ry="32"/>
+        <ellipse cx="138" cy="44" rx="42" ry="34"/>
+        <ellipse cx="190" cy="56" rx="32" ry="26"/>
+      </g>
+      <g fill="#f1e1ea" opacity="0.55">
+        <ellipse cx="85"  cy="68" rx="22" ry="6"/>
+        <ellipse cx="145" cy="68" rx="22" ry="6"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="cloud c4">
+    <svg viewBox="0 0 210 100">
+      <ellipse cx="105" cy="84" rx="92" ry="9" fill="rgba(232, 156, 176, 0.3)"/>
+      <g fill="#f7c8d4">
+        <ellipse cx="45"  cy="64" rx="32" ry="20"/>
+        <ellipse cx="100" cy="70" rx="46" ry="22"/>
+        <ellipse cx="160" cy="64" rx="36" ry="22"/>
+      </g>
+      <g fill="#ffffff">
+        <ellipse cx="50"  cy="50" rx="28" ry="22"/>
+        <ellipse cx="100" cy="42" rx="40" ry="32"/>
+        <ellipse cx="155" cy="50" rx="32" ry="26"/>
+      </g>
+      <g fill="#f1e1ea" opacity="0.55">
+        <ellipse cx="95"  cy="60" rx="22" ry="6"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="cloud c5">
+    <svg viewBox="0 0 160 80">
+      <ellipse cx="80" cy="68" rx="68" ry="7" fill="rgba(232, 156, 176, 0.25)"/>
+      <g fill="#f7c8d4">
+        <ellipse cx="40"  cy="52" rx="28" ry="16"/>
+        <ellipse cx="80"  cy="56" rx="36" ry="18"/>
+        <ellipse cx="120" cy="52" rx="28" ry="16"/>
+      </g>
+      <g fill="#ffffff">
+        <ellipse cx="42"  cy="42" rx="24" ry="18"/>
+        <ellipse cx="80"  cy="34" rx="32" ry="24"/>
+        <ellipse cx="118" cy="42" rx="26" ry="20"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="cloud c6">
+    <svg viewBox="0 0 200 100">
+      <ellipse cx="100" cy="86" rx="88" ry="8" fill="rgba(232, 156, 176, 0.28)"/>
+      <g fill="#f7c8d4">
+        <ellipse cx="45"  cy="66" rx="32" ry="20"/>
+        <ellipse cx="100" cy="72" rx="44" ry="22"/>
+        <ellipse cx="155" cy="66" rx="34" ry="20"/>
+      </g>
+      <g fill="#ffffff">
+        <ellipse cx="50"  cy="52" rx="28" ry="22"/>
+        <ellipse cx="100" cy="42" rx="40" ry="32"/>
+        <ellipse cx="150" cy="52" rx="30" ry="24"/>
+      </g>
+      <g fill="#f1e1ea" opacity="0.55">
+        <ellipse cx="95"  cy="62" rx="22" ry="6"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- ================================================
+     MENU CARD
+     ================================================ -->
+<div class="stage">
+  <div class="menu-card">
+
+    <!-- Corner ornaments — small diamond cluster -->
+    <div class="corner tl"><svg viewBox="0 0 40 40">
+      <g fill="#e07a99">
+        <rect x="17" y="6"  width="6" height="6" transform="rotate(45 20 9)"/>
+        <rect x="9"  y="17" width="6" height="6" transform="rotate(45 12 20)"/>
+        <rect x="17" y="17" width="6" height="6" transform="rotate(45 20 20)"/>
+      </g>
+    </svg></div>
+    <div class="corner tr"><svg viewBox="0 0 40 40">
+      <g fill="#e07a99">
+        <rect x="17" y="6"  width="6" height="6" transform="rotate(45 20 9)"/>
+        <rect x="9"  y="17" width="6" height="6" transform="rotate(45 12 20)"/>
+        <rect x="17" y="17" width="6" height="6" transform="rotate(45 20 20)"/>
+      </g>
+    </svg></div>
+    <div class="corner bl"><svg viewBox="0 0 40 40">
+      <g fill="#e07a99">
+        <rect x="17" y="6"  width="6" height="6" transform="rotate(45 20 9)"/>
+        <rect x="9"  y="17" width="6" height="6" transform="rotate(45 12 20)"/>
+        <rect x="17" y="17" width="6" height="6" transform="rotate(45 20 20)"/>
+      </g>
+    </svg></div>
+    <div class="corner br"><svg viewBox="0 0 40 40">
+      <g fill="#e07a99">
+        <rect x="17" y="6"  width="6" height="6" transform="rotate(45 20 9)"/>
+        <rect x="9"  y="17" width="6" height="6" transform="rotate(45 12 20)"/>
+        <rect x="17" y="17" width="6" height="6" transform="rotate(45 20 20)"/>
+      </g>
+    </svg></div>
+
+    <header class="menu-header">
+      <div class="eyebrow"><span class="tick"></span>Happy Anniversary · Happy Birthday<span class="tick"></span></div>
+      <h1 class="menu-title">For you, Ruby-Lee.</h1>
+      <p class="menu-sub">Pick a cloud to begin —</p>
+    </header>
+
+    <ul class="menu-list">
+      <li>
+        <button class="menu-btn" data-id="know">
+          <span class="num">01</span>
+          <span class="label">How well do you know Ruby-Lee?</span>
+          <span class="arrow">→</span>
+        </button>
+      </li>
+      <li>
+        <button class="menu-btn" data-id="years">
+          <span class="num">02</span>
+          <span class="label">Us, over the years</span>
+          <span class="arrow">→</span>
+        </button>
+      </li>
+      <li>
+        <button class="menu-btn" data-id="gift">
+          <span class="num">03</span>
+          <span class="label">Ruby-Lee's birthday present</span>
+          <span class="arrow">→</span>
+        </button>
+      </li>
+      <li>
+        <button class="menu-btn" data-id="letter">
+          <span class="num">04</span>
+          <span class="label">A letter from me</span>
+          <span class="arrow">→</span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="menu-foot">made with <span class="heart">♥</span> just for you</div>
+
+  </div>
+</div>
+
+<script>
+  // Buttons currently log; wire them up to real pages when ready.
+  document.querySelectorAll('.menu-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      console.log('picked', btn.dataset.id);
+    });
+  });
+</script>
+</body>
+</html>

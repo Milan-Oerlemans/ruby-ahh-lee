@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>For Ruby-Lee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --ink: #ffffff;
+    --ink-dim: rgba(255,255,255,0.55);
+    --ink-faint: rgba(255,255,255,0.32);
+    --accent: #ff4f6d;
+    --bg: #0c1118;
+  }
+  *, *::before, *::after { box-sizing:border-box; }
+  html, body { margin:0; padding:0; min-height:100%; background:var(--bg); color:var(--ink); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; overflow:hidden; }
+  body { width:100vw; height:100vh; }
+
+  /* =========================================================
+     STAGE — holds the lock screen and the menu screen, one
+     fades to the other when the combo is solved.
+     ========================================================= */
+  .stage { position:fixed; inset:0; overflow:hidden; }
+  .screen {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lock-screen {
+    background: var(--bg);
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 1.2s ease;
+  }
+  .lock-screen.is-fading-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* =========================================================
+     SCREEN 1 — Heart Lock (Midnight Minimal, enlarged)
+     ========================================================= */
+  .lock-screen::before {
+    /* faint star dust on the dark background */
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(1px 1px at 18% 28%, rgba(255,255,255,0.5) 50%, transparent 51%),
+      radial-gradient(1px 1px at 72% 22%, rgba(255,255,255,0.35) 50%, transparent 51%),
+      radial-gradient(1px 1px at 33% 78%, rgba(255,255,255,0.4) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 84% 66%, rgba(255,255,255,0.55) 50%, transparent 51%),
+      radial-gradient(1px 1px at 50% 12%, rgba(255,255,255,0.4) 50%, transparent 51%),
+      radial-gradient(1px 1px at 11% 60%, rgba(255,255,255,0.3) 50%, transparent 51%),
+      radial-gradient(1px 1px at 60% 88%, rgba(255,255,255,0.35) 50%, transparent 51%),
+      radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.3) 50%, transparent 51%);
+  }
+
+  .lock-wrap {
+    position:relative; z-index:1;
+    display:flex; flex-direction:column;
+    align-items:center; gap:30px;
+  }
+
+  /* The stage that holds the shackle + heart + dials. Sized to give
+     the arrows comfortable breathing room inside the heart's lobes. */
+  .lock-stage {
+    position:relative;
+    width:540px; height:620px;
+  }
+  /* Shake on completed but wrong-state (kept for hook; harmless). */
+  .lock-stage.shake { animation: shake .4s ease-in-out; }
+  @keyframes shake {
+    0%,100% { transform:translateX(0); }
+    25%     { transform:translateX(-7px); }
+    50%     { transform:translateX(7px); }
+    75%     { transform:translateX(-4px); }
+  }
+
+  /* --- Shackle: legs stop above the heart with a small gap. --- */
+  /* Shackle wrapper extends DOWN past the heart's top curve so the legs
+     visually disappear into the heart fill — no gap, no overlap stub. */
+  .shackle {
+    position:absolute; left:50%; top:0;
+    width:210px; height:210px;
+    transform:translateX(-50%);
+    z-index:1;
+    transition: transform 1.1s cubic-bezier(.34,1.56,.64,1);
+  }
+  .lock-stage.is-open .shackle {
+    transform: translate(-50%, -96px) rotate(-14deg);
+    transform-origin: 88% 100%;
+  }
+  .shackle svg { width:100%; height:100%; display:block; overflow:visible; }
+  .shackle-arch {
+    stroke:rgba(255,255,255,0.6);
+    stroke-width:7;
+    fill:none;
+    stroke-linecap:round;
+  }
+
+  /* --- Heart body: sits below shackle, fills most of the stage. --- */
+  .heart {
+    position:absolute; left:0; right:0;
+    top:120px; bottom:0;
+    z-index:2;
+  }
+  .heart svg { width:100%; height:100%; display:block; }
+  .heart-path { fill:var(--accent); }
+
+  /* --- Dial area floats above the heart. --- */
+  /* Dial area: positioned in the heart's visible "body" — below the
+     top-cusp dip and above where the heart narrows to its point. */
+  .dial-area {
+    position:absolute; left:0; right:0;
+    top:250px;
+    bottom:130px;
+    z-index:3;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    pointer-events:none;
+  }
+  .dial-area > * { pointer-events:auto; }
+
+  .label {
+    font-family:'Inter', sans-serif;
+    color:#fff; font-size:11px; font-weight:400;
+    letter-spacing:5px; text-transform:uppercase;
+    margin-bottom:24px;
+    text-align:center;
+    opacity:.92;
+    user-select:none;
+  }
+  .dials { display:flex; gap:14px; }
+  .dial {
+    display:flex; flex-direction:column; align-items:center;
+    gap:10px;
+  }
+  .dial-btn {
+    border:0; background:transparent; cursor:pointer;
+    padding:6px 12px; font:inherit;
+    color:rgba(255,255,255,0.78);
+    font-size:18px; line-height:1;
+    transition: transform .12s ease, color .12s;
+    user-select:none;
+  }
+  .dial-btn:hover { color:#fff; transform:scale(1.25); }
+  .dial-btn:active { transform:scale(.9); }
+  .digit-box {
+    width:50px; height:64px;
+    border:1px solid rgba(255,255,255,0.55);
+    border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    background:transparent;
+    font-weight:200; font-size:36px;
+    color:#fff;
+    overflow:hidden;
+    font-variant-numeric: tabular-nums;
+  }
+  .digit-num {
+    display:inline-block;
+    animation: tick .18s ease-out both;
+  }
+  @keyframes tick {
+    0%   { transform: translateY(-60%); opacity:0; }
+    100% { transform: translateY(0);    opacity:1; }
+  }
+
+  .hint {
+    font-size:10px; letter-spacing:5px; text-transform:uppercase;
+    color:rgba(255,255,255,0.4);
+    margin-top:4px;
+  }
+
+  /* "CORRECT — UNLOCKING" message appears once solved. */
+  .status {
+    position:absolute; left:50%; bottom:-30px;
+    transform: translate(-50%, 6px);
+    font-size:10px; letter-spacing:6px; text-transform:uppercase;
+    color:var(--accent);
+    opacity:0;
+    transition: opacity .4s ease .35s, transform .5s ease .35s;
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .status.show { opacity:1; transform: translate(-50%, 0); }
+  .status .dot {
+    display:inline-block; width:4px; height:4px; border-radius:50%;
+    background: var(--accent);
+    margin: 0 2px;
+    animation: pulse 1.2s ease-in-out infinite;
+    vertical-align: 2px;
+  }
+  .status .dot:nth-child(2) { animation-delay:.15s; }
+  .status .dot:nth-child(3) { animation-delay:.30s; }
+  @keyframes pulse {
+    0%,100% { opacity:.25; transform: scale(.7); }
+    50%     { opacity:1;   transform: scale(1); }
+  }
+
+  /* =========================================================
+     SCREEN 2 — Menu (blue sky + pink clouds)
+     ========================================================= */
+  .menu-screen {
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease 0.35s;
+    background:
+      radial-gradient(ellipse 70% 40% at 18% 28%, rgba(255,196,214,0.55) 0%, rgba(255,196,214,0) 60%),
+      radial-gradient(ellipse 60% 38% at 82% 70%, rgba(255,178,200,0.5) 0%, rgba(255,178,200,0) 60%),
+      radial-gradient(ellipse 50% 30% at 50% 8%,  rgba(255,210,224,0.4) 0%, rgba(255,210,224,0) 60%),
+      radial-gradient(ellipse 60% 35% at 12% 90%, rgba(255,200,218,0.35) 0%, rgba(255,200,218,0) 60%),
+      linear-gradient(180deg, #4a7bd1 0%, #6896dd 55%, #8eb3e7 100%);
+  }
+  .menu-screen.is-shown {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* extra cloud highlights for depth */
+  .menu-screen::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 28% 14% at 30% 22%, rgba(255,255,255,0.4) 0%, transparent 60%),
+      radial-gradient(ellipse 22% 10% at 72% 78%, rgba(255,255,255,0.32) 0%, transparent 65%),
+      radial-gradient(ellipse 18%  9% at 85% 18%, rgba(255,255,255,0.28) 0%, transparent 65%);
+    mix-blend-mode:screen;
+  }
+
+  .menu {
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center;
+    gap:28px; padding:40px;
+    width:min(720px, 92vw);
+  }
+  .menu .eyebrow {
+    font-family:'Inter', sans-serif;
+    font-size:10px; letter-spacing:6px; text-transform:uppercase;
+    color: rgba(255,255,255,0.85);
+    margin-bottom:0;
+  }
+  .menu h1 {
+    font-family:'Cormorant Garamond', serif;
+    font-weight:400; font-style:italic;
+    font-size: clamp(40px, 6vw, 64px);
+    color:#fff;
+    margin:0 0 8px;
+    text-align:center;
+    letter-spacing:.5px;
+    text-shadow: 0 2px 30px rgba(40,60,120,0.25);
+  }
+  .menu-list {
+    list-style:none; padding:0; margin:18px 0 0;
+    width:100%;
+    display:flex; flex-direction:column;
+    gap:6px;
+  }
+  .menu-item {
+    --num-color: rgba(255,255,255,0.65);
+    display:flex; align-items:baseline; gap:22px;
+    padding:18px 12px;
+    border:0; background:transparent;
+    color:#fff; text-align:left;
+    font-family:'Inter', sans-serif;
+    font-weight:300;
+    font-size: clamp(20px, 2.4vw, 26px);
+    letter-spacing:.3px;
+    cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,0.18);
+    transition: padding-left .35s cubic-bezier(.2,.7,.3,1), color .25s, border-color .25s;
+    width:100%;
+  }
+  .menu-item:hover { padding-left:24px; border-bottom-color: rgba(255,255,255,0.55); }
+  .menu-item .num {
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic; font-weight:400;
+    font-size: clamp(14px, 1.5vw, 16px);
+    color: var(--num-color);
+    width:28px; flex:none;
+  }
+  .menu-item .title { flex:1 1 auto; }
+  .menu-item .arrow {
+    font-family:'Inter', sans-serif; font-weight:200;
+    font-size:22px; opacity:0;
+    transform: translateX(-8px);
+    transition: opacity .25s, transform .35s cubic-bezier(.2,.7,.3,1);
+  }
+  .menu-item:hover .arrow { opacity:.9; transform: translateX(0); }
+
+  /* Item staggered entry */
+  .menu-screen.is-shown .menu-item {
+    animation: rise .9s cubic-bezier(.2,.7,.3,1) both;
+  }
+  .menu-screen.is-shown .menu-item:nth-child(1) { animation-delay: .35s; }
+  .menu-screen.is-shown .menu-item:nth-child(2) { animation-delay: .50s; }
+  .menu-screen.is-shown .menu-item:nth-child(3) { animation-delay: .65s; }
+  .menu-screen.is-shown .menu-item:nth-child(4) { animation-delay: .80s; }
+  .menu-screen.is-shown .eyebrow { animation: rise .9s cubic-bezier(.2,.7,.3,1) .15s both; }
+  .menu-screen.is-shown h1      { animation: rise .9s cubic-bezier(.2,.7,.3,1) .25s both; }
+  @keyframes rise {
+    from { opacity:0; transform: translateY(14px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* Small "back to lock" pill, top-left of menu screen */
+  .back-pill {
+    position:absolute; left:24px; top:24px;
+    background:rgba(255,255,255,0.18);
+    border:1px solid rgba(255,255,255,0.35);
+    color:#fff;
+    border-radius:99px; padding:6px 14px;
+    font-family:'Inter', sans-serif; font-size:10px;
+    letter-spacing:3px; text-transform:uppercase;
+    cursor:pointer; backdrop-filter: blur(6px);
+    z-index:2;
+    transition: background .2s;
+  }
+  .back-pill:hover { background:rgba(255,255,255,0.28); }
+
+  /* Scale-to-fit on short or narrow viewports */
+  @media (max-height: 880px) {
+    .lock-wrap { transform: scale(.82); transform-origin: center; }
+  }
+  @media (max-height: 720px) {
+    .lock-wrap { transform: scale(.66); }
+  }
+  @media (max-height: 560px) {
+    .lock-wrap { transform: scale(.52); }
+  }
+  @media (max-width: 520px) {
+    .lock-stage { width: 92vw; height: calc(92vw * 1.09); max-height: 78vh; }
+    .digit-box { width: 11.5vw; height: 15vw; font-size: 8vw; max-width:52px; max-height:64px; }
+    .dials { gap: 2.5vw; }
+    .dial-btn { font-size: 5vw; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+  const COMBO = [1, 2, 0, 5]; // 12 / 05
+
+  const HEART_PATH =
+    "M50 84 C22 62 4 44 10 24 C16 8 36 4 50 22 C64 4 84 8 90 24 C96 44 78 62 50 84 Z";
+
+  function Dial({ value, onChange }) {
+    return (
+      <div className="dial">
+        <button className="dial-btn" aria-label="up" onClick={() => onChange((value + 1) % 10)}>＋</button>
+        <div className="digit-box"><span className="digit-num" key={value}>{value}</span></div>
+        <button className="dial-btn" aria-label="down" onClick={() => onChange((value + 9) % 10)}>−</button>
+      </div>
+    );
+  }
+
+  function LockScreen({ phase, onSolved }) {
+    const [digits, setDigits] = React.useState([0, 0, 0, 0]);
+    const [solved, setSolved] = React.useState(false);
+
+    React.useEffect(() => {
+      const correct = digits.every((d, i) => d === COMBO[i]);
+      if (correct && !solved) {
+        setSolved(true);
+        // Bar lifts immediately (CSS). Show "correct, unlocking" then ask parent to swap.
+        const t1 = setTimeout(() => onSolved(), 1700);
+        return () => clearTimeout(t1);
+      }
+    }, [digits, solved, onSolved]);
+
+    const setDigit = (i, v) => {
+      setDigits((p) => { const n = p.slice(); n[i] = v; return n; });
+    };
+
+    return (
+      <div className={`screen lock-screen ${phase === 'menu' ? 'is-fading-out' : ''}`}>
+        <div className="lock-wrap">
+
+          <div className={`lock-stage ${solved ? 'is-open' : ''}`}>
+            {/* Shackle */}
+            <div className="shackle">
+              <svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMin meet">
+                <path className="shackle-arch" d="M28 120 L28 44 A32 32 0 0 1 92 44 L92 120" />
+              </svg>
+            </div>
+
+            {/* Heart — anchored to the top of its wrapper so the lobes
+                start exactly where the shackle legs land. */}
+            <div className="heart">
+              <svg viewBox="0 0 100 90" preserveAspectRatio="xMidYMin meet">
+                <path className="heart-path" d={HEART_PATH} />
+              </svg>
+            </div>
+
+            {/* Dial area */}
+            <div className="dial-area">
+              <div className="label">The Day we got Together</div>
+              <div className="dials">
+                {digits.map((d, i) => (
+                  <Dial key={i} value={d} onChange={(v) => setDigit(i, v)} />
+                ))}
+              </div>
+            </div>
+
+            {/* Status under the lock */}
+            <div className={`status ${solved ? 'show' : ''}`}>
+              Correct — unlocking<span className="dot"></span><span className="dot"></span><span className="dot"></span>
+            </div>
+          </div>
+
+          <div className="hint">Hint · MM / DD</div>
+        </div>
+      </div>
+    );
+  }
+
+  function MenuScreen({ shown, onBack, onPick }) {
+    const items = [
+      { id: 'know',  title: 'How well do you know Ruby-Lee' },
+      { id: 'years', title: 'Us over the years' },
+      { id: 'gift',  title: "Ruby-Lee's birthday present" },
+      { id: 'letter', title: 'A letter from me' },
+    ];
+    return (
+      <div className={`screen menu-screen ${shown ? 'is-shown' : ''}`}>
+        <button className="back-pill" onClick={onBack}>← back to lock</button>
+        <div className="menu">
+          <div className="eyebrow">Happy Anniversary · Happy Birthday</div>
+          <h1>For you, Ruby-Lee.</h1>
+          <ul className="menu-list">
+            {items.map((it, i) => (
+              <li key={it.id}>
+                <button className="menu-item" onClick={() => onPick(it.id)}>
+                  <span className="num">{String(i + 1).padStart(2,'0')}</span>
+                  <span className="title">{it.title}</span>
+                  <span className="arrow">→</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  function App() {
+    // phase: 'lock' (initial) → 'fading' → 'menu'
+    const [phase, setPhase] = React.useState('lock');
+    const [lockKey, setLockKey] = React.useState(0); // bump to remount LockScreen
+
+    const handleSolved = React.useCallback(() => {
+      // Single transition: lock-screen fades out, menu-screen fades in.
+      setPhase('menu');
+    }, []);
+
+    const handleBack = () => {
+      setPhase('lock');
+      setLockKey((k) => k + 1); // remount so digits reset to 0000
+    };
+
+    return (
+      <div className="stage">
+        <LockScreen phase={phase} onSolved={handleSolved} key={lockKey} />
+        <MenuScreen shown={phase === 'menu'} onBack={handleBack} onPick={(id) => console.log('picked', id)} />
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
