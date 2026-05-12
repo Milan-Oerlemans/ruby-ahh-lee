@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import SkyBackground from './SkyBackground'
+import KnowQuiz from './KnowQuiz'
 
 const ITEMS = [
   { id: 'know',   label: 'How well do you know Ruby-Lee?' },
@@ -68,7 +69,7 @@ interface MenuScreenProps {
 
 export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
   const router = useRouter()
-  const [view, setView] = useState<'menu' | 'letter'>('menu')
+  const [view, setView] = useState<'menu' | 'letter' | 'know'>('menu')
   const [exiting, setExiting] = useState(false)
 
   // Reset to menu whenever the screen is hidden (e.g. user locks and returns)
@@ -88,7 +89,7 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
   }
 
   const handlePillClick = () => {
-    if (view === 'letter') {
+    if (view === 'letter' || view === 'know') {
       transition('menu')
     } else {
       onBack()
@@ -98,6 +99,8 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
   const handleItemClick = (id: string) => {
     if (id === 'letter') {
       transition('letter')
+    } else if (id === 'know') {
+      transition('know')
     } else {
       router.push(`/${id}`)
     }
@@ -108,11 +111,11 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
       <SkyBackground />
 
       <button className="back-pill" onClick={handlePillClick}>
-        {view === 'letter' ? '← back to menu' : '🔒 lock it up and leave'}
+        {view === 'letter' || view === 'know' ? '← back to menu' : '🔒 lock it up and leave'}
       </button>
 
       <div className="menu-stage">
-        <div className={`menu-card ${view === 'letter' ? 'is-letter' : ''}`}>
+        <div className={`menu-card ${view === 'letter' ? 'is-letter' : ''}${view === 'know' ? ' is-know' : ''}`}>
           <div className="corner tl">{CORNER_SVG}</div>
           <div className="corner tr">{CORNER_SVG}</div>
           <div className="corner bl">{CORNER_SVG}</div>
@@ -167,6 +170,11 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* ── Know view ── */}
+          {view === 'know' && (
+            <KnowQuiz exiting={exiting} />
           )}
         </div>
       </div>
