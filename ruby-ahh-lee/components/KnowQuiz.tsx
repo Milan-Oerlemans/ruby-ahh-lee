@@ -21,13 +21,29 @@ const QS: Q[] = [
 
 const TILE_COLORS = ['#fbd9e3', '#d9ecfb', '#d3f5e4', '#fbf3d9']
 
+function PhotoTile({ qi, i, opt }: { qi: number; i: number; opt: string }) {
+  const src = `/quiz/q${qi + 1}_opt${i + 1}.jpg`
+  return (
+    <>
+      <img
+        src={src}
+        alt={opt}
+        className="qtile-photo-img"
+        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+      />
+      <span className="qtile-photo-placeholder">{opt.charAt(0)}</span>
+    </>
+  )
+}
+
 export default function KnowQuiz({ exiting }: { exiting: boolean }) {
-  const [qi, setQi]       = useState(0)
-  const [sel, setSel]     = useState<number | null>(null)
-  const [tOut, setTOut]   = useState(false)
-  const [tLeft, setTLeft] = useState(10)
-  const [score, setScore] = useState(0)
-  const [phase, setPhase] = useState<'q' | 'result' | 'done'>('q')
+  const [qi, setQi]           = useState(0)
+  const [sel, setSel]         = useState<number | null>(null)
+  const [tOut, setTOut]       = useState(false)
+  const [tLeft, setTLeft]     = useState(10)
+  const [score, setScore]     = useState(0)
+  const [phase, setPhase]     = useState<'q' | 'result' | 'done'>('q')
+  const [showPrize, setShowPrize] = useState(false)
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const q = QS[qi]
@@ -72,14 +88,16 @@ export default function KnowQuiz({ exiting }: { exiting: boolean }) {
   }
 
   function restart() {
-    setQi(0); setSel(null); setTOut(false); setTLeft(10); setScore(0); setPhase('q')
+    setQi(0); setSel(null); setTOut(false); setTLeft(10); setScore(0); setPhase('q'); setShowPrize(false)
   }
 
   const pct = (tLeft / 10) * 100
 
   if (phase === 'done') {
-    const perfect = score === QS.length
-    const good    = score >= 9
+    const perfect  = score === QS.length
+    const good     = score >= 9
+    const hasPrize = score >= 8
+
     return (
       <div className={`quiz-inner ${exiting ? 'is-exiting' : ''}`}>
         <div className="quiz-done">
@@ -96,6 +114,25 @@ export default function KnowQuiz({ exiting }: { exiting: boolean }) {
               ? "Not bad at all — Ruby-Lee would be impressed."
               : "Maybe spend a little more quality time with Ruby-Lee 😄"}
           </p>
+
+          {hasPrize && !showPrize && (
+            <button className="quiz-prize-btn" onClick={() => setShowPrize(true)}>
+              🎉 Congrats — here is your prize
+            </button>
+          )}
+
+          {hasPrize && showPrize && (
+            <div className="quiz-prize-video">
+              <video
+                src="/quiz/prize.mp4"
+                controls
+                autoPlay
+                playsInline
+                className="quiz-prize-player"
+              />
+            </div>
+          )}
+
           <button className="quiz-retry-btn" onClick={restart}>Play again</button>
         </div>
       </div>
@@ -149,8 +186,7 @@ export default function KnowQuiz({ exiting }: { exiting: boolean }) {
               <span className="qtile-inner">
                 <span className="qtile-front">
                   <span className="qtile-photo" style={{ background: TILE_COLORS[i % TILE_COLORS.length] }}>
-                    {/* Swap this span for <img src={`/quiz/q${qi+1}_opt${i+1}.jpg`} alt={opt} className="qtile-photo-img" /> once photos are ready */}
-                    <span className="qtile-photo-placeholder">{opt.charAt(0)}</span>
+                    <PhotoTile qi={qi} i={i} opt={opt} />
                   </span>
                   <span className="qtile-label">{opt}</span>
                 </span>
