@@ -272,6 +272,7 @@ html, body {
   align-items: center; justify-content: center;
   padding: 60px 24px;
   width: 100%;
+  transition: padding 0.65s cubic-bezier(.2,.7,.3,1);
 }
 .menu-card {
   position: relative;
@@ -285,8 +286,10 @@ html, body {
     inset 0 0 0 1px rgba(217,185,122,0.5);
   isolation: isolate;
   transition:
-    width 0.5s cubic-bezier(.2,.7,.3,1),
-    padding 0.5s cubic-bezier(.2,.7,.3,1);
+    width         0.65s cubic-bezier(.2,.7,.3,1),
+    height        0.65s cubic-bezier(.2,.7,.3,1),
+    border-radius 0.65s cubic-bezier(.2,.7,.3,1),
+    padding       0.65s cubic-bezier(.2,.7,.3,1);
 }
 
 /* Expanded state when letter is open */
@@ -580,6 +583,212 @@ html, body {
   padding: 2px 0 2px 20px;
   color: rgba(90, 58, 74, 0.72);
   font-style: italic;
+}
+
+/* =========================================================
+   YEARS TIMELINE
+   ========================================================= */
+
+/* Stage — go edge-to-edge, no padding */
+.menu-stage.is-years {
+  padding: 0;
+  transition: padding 0.65s cubic-bezier(.2,.7,.3,1);
+}
+
+/* Card — expand to fill the full viewport */
+.menu-card.is-years {
+  width:  100vw;
+  height: 100dvh;
+  max-width:  100vw;
+  border-radius: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  transition:
+    width         0.65s cubic-bezier(.2,.7,.3,1),
+    height        0.65s cubic-bezier(.2,.7,.3,1),
+    border-radius 0.65s cubic-bezier(.2,.7,.3,1),
+    padding       0.65s cubic-bezier(.2,.7,.3,1);
+}
+
+/* Hide corner ornaments at full-screen */
+.menu-card.is-years .corner { opacity: 0; transition: opacity 0.3s; }
+
+/* Years inner wrapper */
+.years-inner {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  transition: opacity 0.28s ease;
+  animation: rise 0.4s cubic-bezier(.2,.7,.3,1) both;
+}
+.years-inner.is-exiting { opacity: 0; }
+
+/* Sticky header */
+.years-page-header {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 32px 40px 20px;
+  border-bottom: 1px solid rgba(224,122,153,0.2);
+  background: radial-gradient(ellipse at top, #fbf2dd 0%, #f6e9cf 100%);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.years-page-header .menu-title { margin-top: 8px; font-size: clamp(28px, 4vw, 44px); }
+
+/* Scrollable area */
+.years-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 40px 24px 80px;
+  scrollbar-width: thin;
+  scrollbar-color: #e07a99 transparent;
+}
+.years-scroll::-webkit-scrollbar { width: 4px; }
+.years-scroll::-webkit-scrollbar-thumb { background: #e07a99; border-radius: 2px; }
+
+/* ── Timeline track ── */
+.tl-track {
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 0 40px;
+}
+
+/* Vertical center line */
+.tl-track::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #e07a99 3%,
+    #c95a7d 50%,
+    #e07a99 97%,
+    transparent 100%
+  );
+  z-index: 0;
+}
+
+/* ── Chapter pill markers ── */
+.tl-chapter {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  margin: 40px 0 28px;
+}
+.tl-chapter--end { margin-top: 56px; margin-bottom: 0; }
+.tl-chapter-pill {
+  background: #f6e9cf;
+  border: 1.5px solid #e07a99;
+  border-radius: 99px;
+  padding: 10px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tl-chapter-title {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 500;
+  font-style: italic;
+  color: #c95a7d;
+  white-space: nowrap;
+}
+.tl-chapter-sub {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(201,90,125,0.7);
+}
+
+/* ── Timeline row ── */
+.tl-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+/* Left and right halves */
+.tl-half {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.tl-half-left  { padding-right: 20px; display: flex; justify-content: flex-end; }
+.tl-half-right { padding-left:  20px; display: flex; justify-content: flex-start; }
+
+/* Center column — dot + optional date */
+.tl-mid {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  z-index: 1;
+  min-width: 44px;
+}
+
+/* The dot */
+.tl-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #e07a99;
+  border: 2px solid #f6e9cf;
+  box-shadow: 0 0 0 2px #e07a99;
+  flex-shrink: 0;
+}
+
+/* Date label (above/below dot depending on side) */
+.tl-date {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #c95a7d;
+  white-space: nowrap;
+}
+.tl-date--left  { text-align: right; }
+.tl-date--right { text-align: left; }
+
+/* ── Photo / video card ── */
+.tl-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 6px 20px -6px rgba(40,60,120,0.2),
+    0 2px 6px -2px rgba(40,60,120,0.12);
+  background: #eddfc5;
+  border: 1px solid rgba(224,122,153,0.18);
+  width: 100%;
+  max-width: 420px;
+}
+.tl-media {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tl-video {
+  background: #111;
+}
+
+@media (max-width: 700px) {
+  .tl-half-left  { padding-right: 10px; }
+  .tl-half-right { padding-left:  10px; }
+  .tl-card { max-width: 100%; }
+  .years-scroll { padding: 24px 16px 60px; }
+  .years-page-header { padding: 24px 20px 16px; }
 }
 
 /* =========================================================

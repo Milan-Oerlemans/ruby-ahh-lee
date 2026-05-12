@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import SkyBackground from './SkyBackground'
 import KnowQuiz from './KnowQuiz'
+import YearsTimeline from './YearsTimeline'
 
 const ITEMS = [
   { id: 'know',   label: 'How well do you know Ruby-Lee?' },
@@ -25,40 +26,25 @@ const CORNER_SVG = (
 )
 
 const LETTER = `
-# My Dearest Ruby-Lee,
+# Ruby-Lee,
 
-There are things I've been meaning to put into words for a while now — things I carry with me quietly, that I want you to have written down somewhere you can find them whenever you need them.
+I wish I had the words, I wish I had the words to explain the last two years. I wish I had the words so that I could make you understand exactly how much you mean to me
 
----
+I wish i could explain how much i have seen you grow, how you have changed from a young girl to a beatiful Woman. You have grown in ways i think even you dont understand. 
+I am truly in aw of how you have over come the past two years. I wish i could show ruby from two years ago you now. Standing tall. 
 
-## Two Years
+I wish i could explain how caring you are and how you have stuck with me through my darkest days. How supportive you have been and how you truly stood by me every step of the way.
 
-Two years. It sounds small when you say it out loud, but we've lived a lot inside those two years. You've seen me at my worst and stuck around for my best. I don't take that lightly.
+I wish i could explain to you how beatiful you are, how truly and utterly beatiful you are. I wish I could show you how heads turn when ever you walk into a room
 
-I remember the exact moment I realised I was in trouble — properly, happily in trouble. You were laughing at something, not even looking at me, and I thought: *I want to hear that laugh for the rest of my life.*
+I wish i could make you understand how blessed I am to have you in my life. I wish you would understand how much everyone loves having you around how truly great you are.
+I wish you could fathom how much value you add to any room. 
 
----
+I wish you could realise how much you deserve and how much i want to give you. 
 
-## What You've Given Me
+I wish I had the word to make you understand, to make you truly get just how much I love you
 
-You have this way of making ordinary things feel like they matter. A Tuesday afternoon, a drive nowhere in particular, a stupid show we've both already seen — *better*, just because you're there.
-
-You make me want to be better. Not in a pressured way. In the quiet way that comes from loving someone who loves you back clearly and without condition.
-
-> "The best thing to hold onto in life is each other."
-
----
-
-## Today
-
-Today is yours. Every cloud up there, every word on this page, every ridiculous amount of thought that went into this website — all of it is because you deserve to feel celebrated.
-
-Happy birthday. Happy anniversary.
-
-I love you more than I know how to write down.
-
-Yours always,
-
+Happy Birthday and Happy anniversary
 **Milan** ♥
 `
 
@@ -69,7 +55,7 @@ interface MenuScreenProps {
 
 export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
   const router = useRouter()
-  const [view, setView] = useState<'menu' | 'letter' | 'know'>('menu')
+  const [view, setView] = useState<'menu' | 'letter' | 'know' | 'years'>('menu')
   const [exiting, setExiting] = useState(false)
 
   // Reset to menu whenever the screen is hidden (e.g. user locks and returns)
@@ -89,7 +75,7 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
   }
 
   const handlePillClick = () => {
-    if (view === 'letter' || view === 'know') {
+    if (view === 'letter' || view === 'know' || view === 'years') {
       transition('menu')
     } else {
       onBack()
@@ -101,6 +87,8 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
       transition('letter')
     } else if (id === 'know') {
       transition('know')
+    } else if (id === 'years') {
+      transition('years')
     } else {
       router.push(`/${id}`)
     }
@@ -111,11 +99,11 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
       <SkyBackground />
 
       <button className="back-pill" onClick={handlePillClick}>
-        {view === 'letter' || view === 'know' ? '← back to menu' : '🔒 lock it up and leave'}
+        {view === 'letter' || view === 'know' || view === 'years' ? '← back to menu' : '🔒 lock it up and leave'}
       </button>
 
-      <div className="menu-stage">
-        <div className={`menu-card ${view === 'letter' ? 'is-letter' : ''}${view === 'know' ? ' is-know' : ''}`}>
+      <div className={`menu-stage${view === 'years' ? ' is-years' : ''}`}>
+        <div className={`menu-card ${view === 'letter' ? 'is-letter' : ''}${view === 'know' ? ' is-know' : ''}${view === 'years' ? ' is-years' : ''}`}>
           <div className="corner tl">{CORNER_SVG}</div>
           <div className="corner tr">{CORNER_SVG}</div>
           <div className="corner bl">{CORNER_SVG}</div>
@@ -175,6 +163,11 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
           {/* ── Know view ── */}
           {view === 'know' && (
             <KnowQuiz exiting={exiting} />
+          )}
+
+          {/* ── Years view ── */}
+          {view === 'years' && (
+            <YearsTimeline exiting={exiting} />
           )}
         </div>
       </div>
