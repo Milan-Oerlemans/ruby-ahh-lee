@@ -1,11 +1,17 @@
 // next.config.ts
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+const basePath = isProd ? "/ruby-ahh-lee" : "";
+
 const nextConfig: NextConfig = {
-  output: "export",                  // emit static HTML to /out
-  basePath: "/<REPO>",               // e.g. "/my-next-app" — no trailing slash
-  images: { unoptimized: true },     // next/image needs a server otherwise
-  trailingSlash: true,               // optional but plays nicer with GH Pages
+  output: "export",
+  basePath,
+  images: { unoptimized: true },
+  trailingSlash: true,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
 };
 
 export default nextConfig;

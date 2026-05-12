@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { asset } from '@/lib/asset'
 
 interface Q { text: string; options: string[]; correct: number }
 
@@ -22,7 +23,7 @@ const QS: Q[] = [
 const TILE_COLORS = ['#fbd9e3', '#d9ecfb', '#d3f5e4', '#fbf3d9']
 
 function PhotoTile({ qi, i, opt }: { qi: number; i: number; opt: string }) {
-  const src = `/quiz/q${qi + 1}_opt${i + 1}.jpg`
+  const src = asset(`/quiz/q${qi + 1}_opt${i + 1}.jpg`)
   return (
     <>
       <img
@@ -124,7 +125,7 @@ export default function KnowQuiz({ exiting }: { exiting: boolean }) {
           {hasPrize && showPrize && (
             <div className="quiz-prize-video">
               <video
-                src="/quiz/prize.mp4"
+                src={asset('/quiz/prize.mp4')}
                 controls
                 autoPlay
                 playsInline

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { asset } from '@/lib/asset'
 
 interface Item { file: string; type: 'image' | 'video'; date: string }
 
@@ -121,13 +122,13 @@ export default function YearsTimeline({ exiting }: { exiting: boolean }) {
               <div className="tl-card">
                 {type === 'image' ? (
                   <img
-                    src={`/timeline/${file}`}
+                    src={asset(`/timeline/${file}`)}
                     alt=""
                     loading="lazy"
                     className="tl-media"
                   />
                 ) : (
-                  <AutoVideo src={`/timeline/${file}`} />
+                  <AutoVideo src={asset(`/timeline/${file}`)} />
                 )}
               </div>
             )
