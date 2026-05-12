@@ -66,7 +66,7 @@ export default function MenuScreen({ shown, onBack }: MenuScreenProps) {
     }
   }, [shown])
 
-  const transition = (to: 'menu' | 'letter') => {
+  const transition = (to: 'menu' | 'letter' | 'know' | 'years') => {
     setExiting(true)
     setTimeout(() => {
       setView(to)
